@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Activity, useEffect } from 'react';
 
 import {
   StyleSheet,
@@ -13,13 +14,16 @@ import { createMMKV, useMMKVListener, useMMKVString, useMMKVKeys } from 'react-n
 
 const storage = createMMKV();
 
+const KEY = 'Test';
+
 export default function App() {
+  const [toggle, setToggle] = React.useState<boolean>(false);
   const [text, setText] = React.useState<string>('');
   const [key, setKey] = React.useState<string>('');
   const keys = useMMKVKeys(storage)
   const colorScheme = useColorScheme();
 
-  const [example, setExample] = useMMKVString('nitrooooo');
+  const [example, setExample] = useMMKVString(KEY, storage);
 
   useMMKVListener((k) => {
     console.log(`${k} changed! New size: ${storage.size}`);
@@ -55,17 +59,17 @@ export default function App() {
     }
   }, [key]);
 
-  React.useEffect(() => {
-    console.log(`Value of useMMKVString: ${example}`);
-    const interval = setInterval(() => {
-      setExample((val) => {
-        return val === 'nitrooooo' ? undefined : 'nitrooooo';
-      });
-    }, 1000);
-    return () => {
-      clearInterval(interval);
-    };
-  }, [example, setExample]);
+  // React.useEffect(() => {
+  //   console.log(`Value of useMMKVString: ${example}`);
+  //   const interval = setInterval(() => {
+  //     setExample((val) => {
+  //       return val === 'nitrooooo' ? undefined : 'nitrooooo';
+  //     });
+  //   }, 1000);
+  //   return () => {
+  //     clearInterval(interval);
+  //   };
+  // }, [example, setExample]);
 
   const isDark = colorScheme === 'dark';
   const dynamicStyles = createDynamicStyles(isDark);
@@ -95,10 +99,57 @@ export default function App() {
           onChangeText={setText}
         />
       </View>
+      <Activity>
+        <TestA />
+      </Activity>
+      <Activity mode={toggle ? 'visible' : 'hidden'}>
+        <TestB />
+      </Activity>
+      <Button onPress={() => setToggle((prev) => !prev)} title="Toggle" />
       <Button onPress={save} title="Save to MMKV" />
       <Button onPress={read} title="Read from MMKV" />
     </View>
   );
+}
+
+const TestA = () => {
+  const [example] = useMMKVString(KEY, storage);
+  useEffect(() => {
+    console.log('TestA mounted');
+    return () => {
+      console.log('TestA unmounted');
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('TestA example changed:', example);
+  }, [example]);
+
+  return (
+    <View>
+      <Text>TestA</Text>
+    </View>
+  )
+}
+
+const TestB = () => {
+  const [example] = useMMKVString(KEY, storage);
+  useEffect(() => {
+    console.log('TestB mounted');
+    return () => {
+      console.log('TestB unmounted');
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('TestB example changed:', example);
+  }, [example]);
+  
+  return (
+    <View>
+      <Text>TestB</Text>
+    </View>
+  )
 }
 
 const createDynamicStyles = (isDark: boolean) =>
